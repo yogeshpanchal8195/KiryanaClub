@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "877866772339",
+    "project_id": "kiryanaclub-3e3a7",
+    "storage_bucket": "kiryanaclub-3e3a7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:877866772339:android:ce3e240d2cd73157c0c706",
+        "android_client_info": {
+          "package_name": "com.kiryanaclub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBb4bfvqPhDj6vtCaFuyisaqKRYu6E5VU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
