@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 16,
     elevation: 1.5,
+    height: 180,
   },
   name: {
     ...SUBHEADING_STYLES.MEDIUM_S2,

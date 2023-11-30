@@ -14,6 +14,8 @@ export const cameraUpload = async (
         {
           mediaType: 'photo',
           cameraType: cameraType || 'back',
+          quality: 0.5,
+          selectionLimit: 5,
         },
         imageUploadCallback,
       );
@@ -41,7 +43,8 @@ export const galleryUpload = async imageUploadCallback => {
       launchImageLibrary(
         {
           mediaType: 'photo',
-          includeBase64: true,
+          selectionLimit: 5,
+          quality: 0.5,
         },
         imageUploadCallback,
       );

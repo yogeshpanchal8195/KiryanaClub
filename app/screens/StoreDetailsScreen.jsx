@@ -3,6 +3,7 @@ import {
   Dimensions,
   Image,
   Modal,
+  Pressable,
   StyleSheet,
   Text,
   ToastAndroid,
@@ -24,6 +25,7 @@ const SCREEN_HEIGHT = Dimensions.get('screen').height;
 export default function StoreDetailsScreen({route}) {
   const {uid} = route.params;
   const [uploadImageDrawer, setUploadImageDrawer] = useState(false);
+  const [showImage, setShowImage] = useState();
   const [storeObj, setStoreObj] = useState();
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -58,14 +60,32 @@ export default function StoreDetailsScreen({route}) {
     getImages();
   }, [uid]);
 
-  const imageUploadSuccess = async imageObj => {
+  const imageUploadSuccess = async imageObjList => {
     try {
       setLoading(true);
       setUploadImageDrawer(false);
-      const reference = storage().ref(`${uid}/${imageObj.fileName}`);
-      await reference.putFile(imageObj.uri);
-      const url = await reference.getDownloadURL();
-      setImages([...images, {name: imageObj.fileName, url}]);
+      imageObjList.forEach(async imageObj => {
+        const reference = storage().ref(`${uid}/${imageObj.fileName}`);
+        const task = reference.putFile(imageObj.uri);
+        task.on(
+          'state_changed',
+          taskSnapshot => {
+            const progress =
+              (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) * 100;
+            console.log(`Upload is ${progress}% done`);
+          },
+          error => {
+            console.error(error);
+          },
+          async () => {
+            const downloadURL = await reference.getDownloadURL();
+            setImages(prevImages => [
+              ...prevImages,
+              {name: imageObj.fileName, url: downloadURL},
+            ]);
+          },
+        );
+      });
     } catch (error) {
       ToastAndroid.show(error.message || 'Some Error Occurred', 3000);
     } finally {
@@ -82,14 +102,17 @@ export default function StoreDetailsScreen({route}) {
           <Text style={styles.labelText}>Area: {storeObj.area}</Text>
           <Text style={styles.address}>Address: {storeObj.address}</Text>
           <View style={styles.imageCont}>
-            {images.map(ele => (
-              <View key={ele.name} style={styles.imageCard}>
+            {images.map((ele, idx) => (
+              <Pressable
+                key={ele.name}
+                style={styles.imageCard}
+                onPress={() => setShowImage(idx)}>
                 <Image
                   source={{uri: ele.url}}
                   alt={ele.name}
                   style={styles.img}
                 />
-              </View>
+              </Pressable>
             ))}
             {loading ? <Spinner /> : null}
           </View>
@@ -98,6 +121,30 @@ export default function StoreDetailsScreen({route}) {
               <Text style={styles.type}>+ Add Image</Text>
             </TouchableOpacity>
           ) : null}
+          {showImage !== undefined && (
+            <Modal
+              animationType="slide"
+              transparent
+              visible={showImage !== undefined}
+              onRequestClose={() => setShowImage()}>
+              <View style={styles.background}>
+                <View style={styles.modal}>
+                  <View style={styles.cross}>
+                    <Pressable onPress={() => setShowImage()}>
+                      <Text style={COMMON_STYLES.blackColor}>Close</Text>
+                    </Pressable>
+                  </View>
+                  <View style={COMMON_STYLES.centerItems}>
+                    <Image
+                      source={{uri: images[showImage].url}}
+                      alt={images[showImage].name}
+                      style={styles.bigImg}
+                    />
+                  </View>
+                </View>
+              </View>
+            </Modal>
+          )}
           <Modal
             animationType="slide"
             transparent
@@ -105,6 +152,11 @@ export default function StoreDetailsScreen({route}) {
             onRequestClose={() => setUploadImageDrawer(false)}>
             <View style={uploadImageDrawer && styles.background}>
               <View style={styles.modal}>
+                <View style={styles.cross}>
+                  <Pressable onPress={() => setUploadImageDrawer(false)}>
+                    <Text style={COMMON_STYLES.blackColor}>Close</Text>
+                  </Pressable>
+                </View>
                 <StoreImageUpload imageUploadSuccess={imageUploadSuccess} />
               </View>
             </View>
@@ -116,6 +168,19 @@ export default function StoreDetailsScreen({route}) {
 }
 
 const styles = StyleSheet.create({
+  cross: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    marginTop: -14.5,
+    marginRight: 16,
+    backgroundColor: '#fff',
+    borderRadius: 999,
+    elevation: 1,
+    padding: 8,
+  },
   name: {
     ...SUBHEADING_STYLES.MEDIUM_S2,
     color: '#101010',
@@ -167,6 +232,11 @@ const styles = StyleSheet.create({
   img: {
     height: 80,
     width: 80,
+    borderRadius: 16,
+  },
+  bigImg: {
+    height: 320,
+    width: 280,
     borderRadius: 16,
   },
   imageCont: {

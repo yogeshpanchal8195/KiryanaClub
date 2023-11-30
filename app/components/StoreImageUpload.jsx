@@ -8,8 +8,8 @@ export default function StoreImageUpload({imageUploadSuccess}) {
     if (response && !response.didCancel) {
       if (response.errorMessage) {
         ToastAndroid.show(response.errorMessage || 'Image Picker Error', 2000);
-      } else if (response.assets?.[0]) {
-        imageUploadSuccess(response.assets[0]);
+      } else if (response.assets) {
+        imageUploadSuccess(response.assets);
       }
     }
   };
